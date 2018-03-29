@@ -8,6 +8,8 @@ using UnityEngine;
 // - wire cone2D and circle in 3D (giving an up vector or a quaternion as parameter)
 
 public class Draw : MonoBehaviour {
+	public static bool drawInSceneView = true;
+	
 	static Mesh cubeMesh;
 	static Mesh quadMesh;
 	static Mesh sphereMesh;
@@ -185,17 +187,14 @@ public class Draw : MonoBehaviour {
 
 	public static void Sphere(Vector3 pos, float radius)
 	{
-		Quaternion rot = Quaternion.identity;
-		Matrix4x4 mat = new Matrix4x4();
-		mat.SetTRS(pos, rot, Vector3.one * radius);
-		Graphics.DrawMesh(sphereMesh, mat, debugMaterial, defaultLayer, Camera.main, 0, materialPropertyBlock);
+		Sphere(pos, radius, Quaternion.identity);
 	}
 
 	public static void Sphere(Vector3 pos, float radius, Quaternion rot)
 	{
 		Matrix4x4 mat = new Matrix4x4();
 		mat.SetTRS(pos, rot, Vector3.one * radius);
-		Graphics.DrawMesh(sphereMesh, mat, debugMaterial, defaultLayer, Camera.main, 0, materialPropertyBlock);
+		DrawMesh(sphereMesh, mat, debugMaterial, materialPropertyBlock);
 	}
 
 
@@ -203,35 +202,46 @@ public class Draw : MonoBehaviour {
 
 	public static void WireCube(Vector3 pos, Vector3 size)
 	{
-		Quaternion rot = Quaternion.identity;
-		Matrix4x4 mat = new Matrix4x4();
-		mat.SetTRS(pos, rot, size);
-		Graphics.DrawMesh(cubeMesh, mat, debugWireframeMaterial, defaultLayer, Camera.main, 0, wireframeMaterialPropertyBlock);
+		WireCube(pos, size, Quaternion.identity);
 	}
 
 	public static void WireCube(Vector3 pos, Vector3 size, Quaternion rot)
 	{
 		Matrix4x4 mat = new Matrix4x4();
 		mat.SetTRS(pos, rot, size);
-		Graphics.DrawMesh(cubeMesh, mat, debugWireframeMaterial, defaultLayer, Camera.main, 0, wireframeMaterialPropertyBlock);
+		DrawMesh(cubeMesh, mat, debugWireframeMaterial, wireframeMaterialPropertyBlock);
 	}
 
 
 	public static void WireSphere(Vector3 pos, float radius)
 	{
-		Quaternion rot = Quaternion.identity;
-		Matrix4x4 mat = new Matrix4x4();
-		mat.SetTRS(pos, rot, Vector3.one * radius);
-		Graphics.DrawMesh(sphereMesh, mat, debugWireframeMaterial, defaultLayer, Camera.main, 0, wireframeMaterialPropertyBlock);
+		WireSphere(pos, radius, Quaternion.identity);
 	}
 
 	public static void WireSphere(Vector3 pos, float radius, Quaternion rot)
 	{
 		Matrix4x4 mat = new Matrix4x4();
 		mat.SetTRS(pos, rot, Vector3.one * radius);
-		Graphics.DrawMesh(sphereMesh, mat, debugWireframeMaterial, defaultLayer, Camera.main, 0, wireframeMaterialPropertyBlock);
+		DrawMesh(sphereMesh, mat, debugWireframeMaterial, wireframeMaterialPropertyBlock);
 	}
 
 
+	static void DrawMesh(Mesh mesh, Matrix4x4 matrix, Material material, MaterialPropertyBlock propertyBlock)
+	{
+		Graphics.DrawMesh(mesh, matrix, material, defaultLayer, Camera.main, 0, propertyBlock);
+		
+		#if UNITY_EDITOR
+		if(drawInSceneView)
+		{
+			if(UnityEditor.SceneView.lastActiveSceneView)
+			{
+				Graphics.DrawMesh(mesh, matrix, material, defaultLayer, UnityEditor.SceneView.lastActiveSceneView.camera, 0, propertyBlock);
+			}else
+			{
+				Debug.LogWarning("no drawing scene view found");
+			}
+		}
+		#endif
+	}
 
 }
