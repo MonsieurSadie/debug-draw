@@ -105,7 +105,7 @@ public class Draw : MonoBehaviour {
 		Quaternion rot = Quaternion.FromToRotation(Vector3.up, line.normalized);
 		Matrix4x4 mat = new Matrix4x4();
 		mat.SetTRS(start + line*0.5f, rot, new Vector3(stroke, length * 0.5f, stroke));
-		Graphics.DrawMesh(cylinderMesh, mat, debugMaterial, defaultLayer, Camera.main, 0, materialPropertyBlock);
+		DrawMesh(cylinderMesh, mat, debugMaterial, materialPropertyBlock);
 	}
 
 	public static void WireRect(Vector3 pos, float w, float h)
@@ -134,14 +134,22 @@ public class Draw : MonoBehaviour {
 
 	public static void WireCone2D(Vector3 pos, Vector3 direction, float radius, float angle)
 	{
+		WireCone2D(pos, direction, radius, angle, Vector3.back);
+	}
+
+	public static void WireCone2D(Vector3 pos, Vector3 direction, float radius, float angle, Vector3 up)
+	{
 		float stepAngle = Mathf.PI*2 / circleDefinition;
-		Quaternion halfrot = Quaternion.Euler(0, 0, angle * 0.5f);
-		Vector3 prevPos = pos + halfrot * (direction * radius);
+		Quaternion rot = Quaternion.FromToRotation(Vector3.back, up);
+		Quaternion halfconerot = Quaternion.Euler(0, 0, angle * 0.5f);
+		Vector3 prevPos = pos + halfconerot * rot * (direction * radius);
 		
 		Line(pos, prevPos);
 		for (float finalAngle = 0; finalAngle <= angle; finalAngle += stepAngle)
 		{
-			Vector3 nextPos = pos + Quaternion.Euler(0,0, angle * 0.5f - finalAngle) * direction * radius;
+			Vector3 to_next_point = Quaternion.Euler(0,0, angle * 0.5f - finalAngle) * direction * radius;
+			to_next_point = rot * to_next_point;
+			Vector3 nextPos = pos + to_next_point;
 			Line(prevPos, nextPos);
 			prevPos = nextPos;
 		}
@@ -149,40 +157,43 @@ public class Draw : MonoBehaviour {
 	}
 
 
-
 	public static void Rect(Vector3 pos, float w, float h)
 	{
-		Quaternion rot = Quaternion.identity;
+		Rect(pos, w, h, Vector3.back);
+	}
+
+	public static void Rect(Vector3 pos, float w, float h, Vector3 up)
+	{
 		Matrix4x4 mat = new Matrix4x4();
-		mat.SetTRS(pos, rot, new Vector3(w, h, 1));
-		Graphics.DrawMesh(quadMesh, mat, debugMaterial, defaultLayer, Camera.main, 0, materialPropertyBlock);
+		mat.SetTRS(pos, Quaternion.FromToRotation(Vector3.back, up), new Vector3(w, h, 1));
+		DrawMesh(quadMesh, mat, debugMaterial, materialPropertyBlock);
 	}
 
 	public static void Circle(Vector3 pos, float radius)
 	{
-		Matrix4x4 mat = new Matrix4x4();
-		mat.SetTRS(pos, Quaternion.identity, Vector3.one);
-		Graphics.DrawMesh(circleMesh, mat, debugMaterial, defaultLayer, Camera.main, 0, materialPropertyBlock);
+		Circle(pos, radius, Vector3.back);
 	}
 
-
+	public static void Circle(Vector3 pos, float radius, Vector3 up)
+	{
+		Matrix4x4 mat = new Matrix4x4();
+		mat.SetTRS(pos, Quaternion.FromToRotation(Vector3.back, up), Vector3.one);
+		DrawMesh(circleMesh, mat, debugMaterial, materialPropertyBlock);
+	}
 
 
 
 
 	public static void Cube(Vector3 pos, Vector3 size)
 	{
-		Quaternion rot = Quaternion.identity;
-		Matrix4x4 mat = new Matrix4x4();
-		mat.SetTRS(pos, rot, size);
-		Graphics.DrawMesh(cubeMesh, mat, debugMaterial, defaultLayer, Camera.main, 0, materialPropertyBlock);
+		Cube(pos, size, Quaternion.identity);
 	}
 
 	public static void Cube(Vector3 pos, Vector3 size, Quaternion rot)
 	{
 		Matrix4x4 mat = new Matrix4x4();
 		mat.SetTRS(pos, rot, size);
-		Graphics.DrawMesh(cubeMesh, mat, debugMaterial, defaultLayer, Camera.main, 0, materialPropertyBlock);
+		DrawMesh(cubeMesh, mat, debugMaterial, materialPropertyBlock);
 	}
 
 	public static void Sphere(Vector3 pos, float radius)

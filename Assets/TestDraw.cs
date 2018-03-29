@@ -35,7 +35,7 @@ public class TestDraw : MonoBehaviour {
 		Draw.Rect(Vector3.zero, 1.5f, 2.2f);
 
 		Draw.color = Color.yellow;
-		Draw.Circle(Vector3.zero, 0.5f);
+		Draw.Circle(Vector3.zero, 0.5f, new Vector3(0, 1, -1));
 
 		Draw.color = Color.green;
 		Draw.WireCube(-Vector3.one, Vector3.one, Quaternion.Euler(-30, 30, 0));
@@ -45,7 +45,7 @@ public class TestDraw : MonoBehaviour {
 		Draw.Sphere(Vector3.right * 3, 0.5f, Quaternion.Euler(0, 0, 30));
 
 		Draw.color = Color.white;
-		angle += 90 * Time.deltaTime;
-		Draw.WireCone2D(target.transform.position, Quaternion.Euler(0, 0, angle) * Vector3.right, 2, 45);
+		//angle += 90 * Time.deltaTime;
+		Draw.WireCone2D(target.transform.position, Quaternion.Euler(0, 0, angle) * Vector3.right, 2, 45, Vector3.up);
 	}
 }
