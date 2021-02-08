@@ -4,12 +4,14 @@ using UnityEngine;
 
 // TODO : 
 // - find solution for alpha (can't use standard shader from script)
-// - find better solution for wireframe shaders
-// - wire cone2D and circle in 3D (giving an up vector or a quaternion as parameter)
-// - Clean 3ds arrow mesh so that it imports correctly
-// - find a way to prevent generating new meshes for each text ?
-// - Test Changing DrawMesh by DrawMeshInstanced to improve performances and reduce drawcalls
+// - wire cone2D/3D and circle in 3D (giving an up vector or a quaternion as parameter)
+// - Do arrow without depending on a static mesh
+// - avoid generating text meshes.
+// - text centering ? (not a priority)
 // - Store user calls as CommandBuffers ?
+// - add commands to scale things according to camera zoom
+//   should give the option to enter sizes in viewport space and stay consistant with zoom
+// - add a feature to make drawings selectable
 
 public class Draw : MonoBehaviour {
 	
@@ -218,6 +220,7 @@ public class Draw : MonoBehaviour {
 		meshesToDraw.Clear();
 	}
 
+	// Undo N commands (don't have to be temp commands)
 	public static void UndoCommands(int numCommandsBackward)
 	{
 		meshesToDraw.RemoveRange(meshesToDraw.Count-numCommandsBackward, numCommandsBackward);
@@ -280,14 +283,6 @@ public class Draw : MonoBehaviour {
 		#endif
 		Matrix4x4 matrix = Matrix4x4.TRS(pos, Camera.main.transform.rotation * Quaternion.AngleAxis(180,Vector3.up), Vector3.one * size);
 		DrawMesh(textMesh, matrix, fontMaterial, materialPropertyBlock);
-
-
-		// GameObject go = GameObject.CreatePrimitive(PrimitiveType.Quad);
-		// go.GetComponent<MeshFilter>().mesh = textMesh;
-		// go.GetComponent<MeshRenderer>().material = fontMaterial;
-		// go.transform.position = pos;
-		// go.transform.rotation = orientation;
-		// go.transform.localScale = Vector3.one * size;
 	}
 
 	// TEMP: Done with TextMesh, size is in float units (scaling)
