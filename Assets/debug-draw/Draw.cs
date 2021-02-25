@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // TODO : 
-// - find solution for alpha (can't use standard shader from script)
 // - wire cone2D/3D and circle in 3D (giving an up vector or a quaternion as parameter)
 // - Do arrow without depending on a static mesh
 // - avoid generating text meshes.
@@ -45,7 +44,12 @@ public class Draw : MonoBehaviour {
 	static Mesh textMesh;
 	static Mesh triangleMesh;
 
+	static Vector3 anchor = Vector3.zero;
+	static Vector3 toPixels = Vector3.one;
+
+	static Material currentMaterial;
 	static Material debugMaterial;
+	static Material transparentMaterial;
 	static Material instancedCallsMat;
 	static Material wireInstancedCallsMat;
 	static Material debugWireframeMaterial;
@@ -68,6 +72,31 @@ public class Draw : MonoBehaviour {
 		}
 		get{
 			return _color;
+		}
+	}
+
+	// transparent drawing costs more
+	public static void EnableTransparentMode(bool enable)
+    {
+		currentMaterial = enable ? transparentMaterial : debugMaterial;
+    }
+
+	public static void SetValuesAsPixels(bool enable)
+    {
+		if(enable)
+        {
+			float camH = Camera.main.orthographicSize * 2;
+			float camW = camH * Camera.main.aspect;
+			toPixels.x = camW / Screen.width;
+			toPixels.y = camH / Screen.height;
+
+			anchor.x = -camW * 0.5f;
+			anchor.y = -camH * 0.5f;
+		}
+		else
+        {
+			toPixels = Vector3.one;
+			anchor = Vector3.zero;
 		}
 	}
 	
@@ -155,6 +184,7 @@ public class Draw : MonoBehaviour {
 		}
 
 		debugMaterial = new Material(Shader.Find("Unlit/Color"));
+		transparentMaterial = new Material(Shader.Find("Unlit/TransparentColor"));
 		instancedCallsMat = new Material(Shader.Find("Standard"));
 		instancedCallsMat.enableInstancing = true;
 		wireInstancedCallsMat = new Material((Shader)Resources.Load("Wireframe"));
@@ -163,6 +193,8 @@ public class Draw : MonoBehaviour {
 		materialPropertyBlock = new MaterialPropertyBlock();
 		wireframeMaterialPropertyBlock = new MaterialPropertyBlock();
 		defaultLayer = LayerMask.NameToLayer("Default");
+
+		currentMaterial = debugMaterial;
 	}
 
 	bool drawWithDurationEnabled = true;
@@ -232,7 +264,6 @@ public class Draw : MonoBehaviour {
 		meshesToDraw.RemoveRange(meshesToDraw.Count-numCommandsBackward, numCommandsBackward);
 	}
 
-
 	public static void Text(string str, Vector3 pos, float size)
 	{
 		debugTextFont.RequestCharactersInTexture(str);
@@ -244,7 +275,7 @@ public class Draw : MonoBehaviour {
 		Vector3 posInText		= Vector3.zero;
 
 		for (int i = 0; i < str.Length; i++)
-    {
+		{
 			CharacterInfo char_info;
 			debugTextFont.GetCharacterInfo(str[i], out char_info);
 			vertices[4*i + 0] = posInText + new Vector3(char_info.minX, char_info.maxY, 0);
@@ -266,7 +297,7 @@ public class Draw : MonoBehaviour {
 			triangles[6 * i + 5] = 4 * i + 3;
 
 			posInText.x += char_info.advance; // advance char position
-    }
+		}
 		//textMesh.Clear();
 		textMesh = new Mesh();
 		textMesh.vertices = vertices;
@@ -313,7 +344,7 @@ public class Draw : MonoBehaviour {
 		Quaternion rot = Quaternion.FromToRotation(Vector3.up, line.normalized);
 		Matrix4x4 mat = new Matrix4x4();
 		mat.SetTRS(start + line*0.5f, rot, new Vector3(stroke, length * 0.5f, stroke));
-		DrawMesh(cylinderMesh, mat, debugMaterial, materialPropertyBlock);
+		DrawMesh(cylinderMesh, mat, currentMaterial, materialPropertyBlock);
 	}
 
 	public static void WireTriangle(Vector3 p0, Vector3 p1, Vector3 p2)
@@ -450,8 +481,6 @@ public class Draw : MonoBehaviour {
 	}
 
 
-
-
 	
 	static Vector3 scale = new Vector3(0.03f, 1, 0.03f);
 	const int MAX_INSTANCES_LINES = 1023;
@@ -492,6 +521,7 @@ public class Draw : MonoBehaviour {
 		Line(pos + Vector3.up * h * 0.5f + Vector3.right * w * 0.5f, pos + Vector3.down * h * 0.5f + Vector3.right * w * 0.5f);
 	}
 
+
 	public static void WireCircle(Vector3 pos, float radius)
 	{
 		float stepAngle = Mathf.PI*2 / circleDefinition;
@@ -507,6 +537,7 @@ public class Draw : MonoBehaviour {
 			prevPos = nextPos;
 		}
 	}
+
 
 	public static void WireCone2D(Vector3 pos, Vector3 direction, float radius, float angle)
 	{
@@ -533,6 +564,12 @@ public class Draw : MonoBehaviour {
 	}
 
 
+
+	public static void Rect2D(float x, float y, float w, float h)
+	{
+		Rect(new Vector3(x, y, 0), w, h, Vector3.back);
+	}
+
 	public static void Rect(Vector3 pos, float w, float h)
 	{
 		Rect(pos, w, h, Vector3.back);
@@ -540,9 +577,11 @@ public class Draw : MonoBehaviour {
 
 	public static void Rect(Vector3 pos, float w, float h, Vector3 up)
 	{
+		pos = anchor + Vector3.Scale(pos, toPixels);
 		Matrix4x4 mat = new Matrix4x4();
-		mat.SetTRS(pos, Quaternion.FromToRotation(Vector3.back, up), new Vector3(w, h, 1));
-		DrawMesh(quadMesh, mat, debugMaterial, materialPropertyBlock);
+		Vector3 scale = new Vector3(w, h, 1);
+		mat.SetTRS(pos, Quaternion.FromToRotation(Vector3.back, up), Vector3.Scale(scale, toPixels));
+		DrawMesh(quadMesh, mat, currentMaterial, materialPropertyBlock);
 	}
 
 	public static void Circle(Vector3 pos, float radius)
@@ -552,9 +591,11 @@ public class Draw : MonoBehaviour {
 
 	public static void Circle(Vector3 pos, float radius, Vector3 up)
 	{
+		pos = anchor + Vector3.Scale(pos, toPixels);
 		Matrix4x4 mat = new Matrix4x4();
-		mat.SetTRS(pos, Quaternion.FromToRotation(Vector3.back, up), Vector3.one);
-		DrawMesh(circleMesh, mat, debugMaterial, materialPropertyBlock);
+		Vector3 scale = Vector3.one;
+		mat.SetTRS(pos, Quaternion.FromToRotation(Vector3.back, up), Vector3.Scale(scale, toPixels));
+		DrawMesh(circleMesh, mat, currentMaterial, materialPropertyBlock);
 	}
 
 
@@ -569,21 +610,21 @@ public class Draw : MonoBehaviour {
 	{
 		Matrix4x4 mat = new Matrix4x4();
 		mat.SetTRS(pos, rot, size);
-		DrawMesh(cubeMesh, mat, debugMaterial, materialPropertyBlock);
+		DrawMesh(cubeMesh, mat, currentMaterial, materialPropertyBlock);
 	}
 
 	public static void Arrow(Vector3 start, Vector3 end)
 	{
 		Vector3 dirVec = end - start;
 		Matrix4x4 matrix = Matrix4x4.TRS(start, Quaternion.FromToRotation(Vector3.forward, dirVec.normalized), new Vector3(stroke, stroke, dirVec.magnitude));
-		DrawMesh(arrowMesh, matrix, debugMaterial, materialPropertyBlock);
+		DrawMesh(arrowMesh, matrix, currentMaterial, materialPropertyBlock);
 	} 
 
 	public static void DirectionArrow(Vector3 start, Vector3 direction)
 	{
 		Vector3 dirVec = direction;
 		Matrix4x4 matrix = Matrix4x4.TRS(start, Quaternion.FromToRotation(Vector3.forward, dirVec.normalized), new Vector3(stroke, stroke, dirVec.magnitude));
-		DrawMesh(arrowMesh, matrix, debugMaterial, materialPropertyBlock);
+		DrawMesh(arrowMesh, matrix, currentMaterial, materialPropertyBlock);
 	}
 
 	public static void Sphere(Vector3 pos)
