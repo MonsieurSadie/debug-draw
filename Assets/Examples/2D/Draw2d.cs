@@ -14,6 +14,7 @@ public class Draw2d : MonoBehaviour
 
     void Start()
     {
+        Draw.infiniteMode = true;
         Draw.EnableTransparentMode(true);
         Draw.SetValuesAsPixels(true);
     }

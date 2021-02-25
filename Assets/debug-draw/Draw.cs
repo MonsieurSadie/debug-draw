@@ -59,6 +59,8 @@ public class Draw : MonoBehaviour {
 	static List<TextMesh> textMeshes;
 	static GameObject textMeshHolder;
 
+	static Camera mainCamera;
+
 	static Font debugTextFont;
 	
 	static int defaultLayer;
@@ -85,8 +87,8 @@ public class Draw : MonoBehaviour {
     {
 		if(enable)
         {
-			float camH = Camera.main.orthographicSize * 2;
-			float camW = camH * Camera.main.aspect;
+			float camH = mainCamera.orthographicSize * 2;
+			float camW = camH * mainCamera.aspect;
 			toPixels.x = camW / Screen.width;
 			toPixels.y = camH / Screen.height;
 
@@ -195,6 +197,8 @@ public class Draw : MonoBehaviour {
 		defaultLayer = LayerMask.NameToLayer("Default");
 
 		currentMaterial = debugMaterial;
+
+		mainCamera = Camera.main;
 	}
 
 	bool drawWithDurationEnabled = true;
@@ -305,14 +309,14 @@ public class Draw : MonoBehaviour {
 		textMesh.triangles = triangles;
 
 
-		Quaternion orientation = Camera.main.transform.rotation;
+		Quaternion orientation = mainCamera.transform.rotation;
 		#if UNITY_EDITOR
 		if(UnityEditor.SceneView.lastActiveSceneView)
 		{
 			orientation = UnityEditor.SceneView.lastActiveSceneView.camera.transform.rotation;
 		}
 		#endif
-		Matrix4x4 matrix = Matrix4x4.TRS(pos, Camera.main.transform.rotation * Quaternion.AngleAxis(180,Vector3.up), Vector3.one * size);
+		Matrix4x4 matrix = Matrix4x4.TRS(pos, mainCamera.transform.rotation * Quaternion.AngleAxis(180,Vector3.up), Vector3.one * size);
 		DrawMesh(textMesh, matrix, fontMaterial, materialPropertyBlock);
 	}
 
@@ -696,7 +700,7 @@ public class Draw : MonoBehaviour {
 
 	static void DrawMesh(DrawData data)
 	{
-		Graphics.DrawMesh(data.meshModel, data.matrix, data.drawMaterial, defaultLayer, Camera.main, 0, data.propertyBlock);
+		Graphics.DrawMesh(data.meshModel, data.matrix, data.drawMaterial, defaultLayer, mainCamera, 0, data.propertyBlock);
 		
 		#if UNITY_EDITOR
 		if(drawInSceneView)
