@@ -39,6 +39,7 @@ public class Draw : MonoBehaviour {
 	static Mesh quadMesh;
 	static Mesh sphereMesh;
 	static Mesh cylinderMesh;
+	static Mesh capsuleMesh;
 	static Mesh circleMesh;
 	static Mesh arrowMesh;
 	static Mesh textMesh;
@@ -124,6 +125,10 @@ public class Draw : MonoBehaviour {
 		GameObject cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
 		cylinderMesh = cylinder.GetComponent<MeshFilter>().mesh;
 		Destroy(cylinder);
+
+		GameObject capsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+		capsuleMesh = capsule.GetComponent<MeshFilter>().mesh;
+		Destroy(capsule);
 
 		arrowMesh = ((GameObject)Resources.Load("arrow")).GetComponent<MeshFilter>().sharedMesh;
 
@@ -349,6 +354,30 @@ public class Draw : MonoBehaviour {
 		Matrix4x4 mat = new Matrix4x4();
 		mat.SetTRS(start + line*0.5f, rot, new Vector3(stroke, length * 0.5f, stroke));
 		DrawMesh(cylinderMesh, mat, currentMaterial, materialPropertyBlock);
+	}
+
+	public static void Line(Vector3 center, Quaternion rot, float length)
+	{
+		Matrix4x4 mat = new Matrix4x4();
+		mat.SetTRS(center, rot, new Vector3(stroke, length * 0.5f, stroke));
+		DrawMesh(cylinderMesh, mat, currentMaterial, materialPropertyBlock);
+	}
+
+	public static void RoundedLine(Vector3 start, Vector3 end)
+	{
+		Vector3 line = end - start;
+		float length = line.magnitude;
+		Quaternion rot = Quaternion.FromToRotation(Vector3.up, line.normalized);
+		Matrix4x4 mat = new Matrix4x4();
+		mat.SetTRS(start + line*0.5f, rot, new Vector3(stroke, length * 0.5f, stroke));
+		DrawMesh(capsuleMesh, mat, currentMaterial, materialPropertyBlock);
+	}
+
+	public static void RoundedLine(Vector3 center, Quaternion rot, float length)
+	{
+		Matrix4x4 mat = new Matrix4x4();
+		mat.SetTRS(center, rot, new Vector3(stroke, length * 0.5f, stroke));
+		DrawMesh(capsuleMesh, mat, currentMaterial, materialPropertyBlock);
 	}
 
 	public static void WireTriangle(Vector3 p0, Vector3 p1, Vector3 p2)
