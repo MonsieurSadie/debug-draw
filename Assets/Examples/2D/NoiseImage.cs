@@ -14,6 +14,8 @@ public class NoiseImage : MonoBehaviour
   Color[] imagePixels;
 
   public int drawLength = 250;  // The amount of times we'll iterate through draw() until it stops.
+  public int maxElementsPerFrame = 100;
+  public int minElementsPerFrame = 2;
   int frame;  // Variable to contain the current frame.
 
 
@@ -40,7 +42,8 @@ public class NoiseImage : MonoBehaviour
   }
 
 
-  void Update() {
+  void Update() 
+  {
     if(Input.GetKeyDown(KeyCode.R))
     {
       frame = 0;
@@ -61,7 +64,7 @@ public class NoiseImage : MonoBehaviour
      
     // The smaller the stroke is the more the spawn count increases to capture more detail.
     // map n'existe pas dans unity, il faut faire en deux étapes
-    int count = (int)map(frame, 0, drawLength, 2, 80);
+    int count = (int)map(frame, 0, drawLength, minElementsPerFrame, maxElementsPerFrame);
 
     // Add a loop to create multiple strokes.
     for (int i = 0; i < count; i++) 
@@ -83,7 +86,7 @@ public class NoiseImage : MonoBehaviour
       float lengthVariation = Random.Range(0.75f, 1.25f);  // Randomize a multiplier to make length shorter or longer.
 
       // map the position inside the screen (screen may not be the same size as the image)
-      Vector3 position = new Vector3(x, y,0);
+      Vector3 position = new Vector3(x, y, -frame*0.001f); // put new frames on top of previous ones
       position.x = map(position.x, 0, image.width, margins.x, Screen.width - margins.x);
       position.y = map(position.y, 0, image.height, margins.y, Screen.height - margins.y);
       Draw.RoundedLine2D(position, rotationAngle, strokeLength * lengthVariation);

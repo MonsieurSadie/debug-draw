@@ -115,9 +115,20 @@ public class Draw : MonoBehaviour {
 	}
 	
 
+	static RenderTexture rt;
+	static Camera renderTexCam;
+
+
 	[RuntimeInitializeOnLoadMethod]
 	static void Initialize()
 	{
+		GameObject camgo = new GameObject("RenderTexCam");
+		renderTexCam = camgo.AddComponent<Camera>();
+		renderTexCam.CopyFrom(Camera.main);
+		rt = new RenderTexture(Screen.width, Screen.height, 16, RenderTextureFormat.ARGB32);
+        rt.Create();
+		renderTexCam.targetTexture = rt;
+
 		GameObject go = new GameObject("DrawDebug");
 		go.AddComponent<Draw>();
 

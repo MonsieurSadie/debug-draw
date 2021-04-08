@@ -233,11 +233,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c5832642036b1734c932d8b8b43a4557, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  strokeLength: 50
-  noiseScale: 0.005
+  strokeLength: 25
+  noiseScale: 0.004
   strokeMaxThickness: 9
-  image: {fileID: 2800000, guid: 1bca018f9b614cb4198e15afc8f2bcf4, type: 3}
+  image: {fileID: 2800000, guid: a35747159b490594baa5f82ab858f6a9, type: 3}
   drawLength: 250
+  maxElementsPerFrame: 2
+  minElementsPerFrame: 100
 --- !u!4 &1612429508
 Transform:
   m_ObjectHideFlags: 0
