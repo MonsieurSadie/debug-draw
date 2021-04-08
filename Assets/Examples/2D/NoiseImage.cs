@@ -7,6 +7,7 @@ public class NoiseImage : MonoBehaviour
 {
   public float strokeLength = 25;
   public float noiseScale = 0.005f;
+  public float strokeMaxThickness = 15;
 
   //var imgNames = ["portrait.jpg", "fleurs.jpg", "frise.png" , "oiso.png", "arli.jpg" , "sirene.jpg"];
   public Texture2D image;
@@ -40,6 +41,12 @@ public class NoiseImage : MonoBehaviour
 
 
   void Update() {
+    if(Input.GetKeyDown(KeyCode.R))
+    {
+      frame = 0;
+      Draw.ClearDrawBuffer();
+    }
+
       // Stop drawing once we exceed the drawing length.
     if (frame > drawLength) {
       return;
@@ -63,7 +70,7 @@ public class NoiseImage : MonoBehaviour
 
       // Map the thickness based on the current frame of the sketch.
       // First it starts off thick, then gradually thins out until it reaches zero.
-      int strokeThickness = (int)map(frame, 0, drawLength, 15, 0);
+      int strokeThickness = (int)map(frame, 0, drawLength, strokeMaxThickness, 0);
       Draw.stroke = strokeThickness;
 
       float n = Mathf.PerlinNoise(x * noiseScale, y * noiseScale);
