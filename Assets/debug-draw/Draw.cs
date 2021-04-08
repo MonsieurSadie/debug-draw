@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // TODO : 
+// - avoid using to pixels in every draw function. profile using it inside DrawMesh for instance (as a matrix modifier)
+// - rounded line should be two half-circles + a quad and not scaled capsules
 // - wire cone2D/3D and circle in 3D (giving an up vector or a quaternion as parameter)
 // - Do arrow without depending on a static mesh
 // - avoid generating text meshes.
@@ -17,9 +19,18 @@ public class Draw : MonoBehaviour {
 	/// OPTIONS
 	public static bool drawInSceneView = true;
 	public static bool infiniteMode = false;
-	static public float stroke = 0.03f;
 	static public int circleDefinition = 40;
 	static public float sphereDefaultSize = 0.1f;
+
+	static private float _stroke = 0.03f;
+	static public float stroke{
+		set{
+			_stroke = value * toPixels.y;
+		}
+		get{
+			return _stroke;
+		}
+	}
 	
 
 	public class DrawData
@@ -376,7 +387,9 @@ public class Draw : MonoBehaviour {
 	public static void RoundedLine(Vector3 center, Quaternion rot, float length)
 	{
 		Matrix4x4 mat = new Matrix4x4();
-		mat.SetTRS(center, rot, new Vector3(stroke, length * 0.5f, stroke));
+		length *= toPixels.y;
+		Vector3 scale = new Vector3(stroke, length * 0.5f, stroke);
+		mat.SetTRS(anchor + Vector3.Scale(center, toPixels), rot, scale);
 		DrawMesh(capsuleMesh, mat, currentMaterial, materialPropertyBlock);
 	}
 
@@ -626,7 +639,7 @@ public class Draw : MonoBehaviour {
 	{
 		pos = anchor + Vector3.Scale(pos, toPixels);
 		Matrix4x4 mat = new Matrix4x4();
-		Vector3 scale = Vector3.one;
+		Vector3 scale = Vector3.one * radius;
 		mat.SetTRS(pos, Quaternion.FromToRotation(Vector3.back, up), Vector3.Scale(scale, toPixels));
 		DrawMesh(circleMesh, mat, currentMaterial, materialPropertyBlock);
 	}
