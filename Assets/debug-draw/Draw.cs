@@ -355,8 +355,6 @@ public class Draw : MonoBehaviour {
 		tm.transform.forward = -normal;
 	}
 
-
-
 	public static void Line(Vector3 start, Vector3 end)
 	{
 		Vector3 line = end - start;
@@ -370,7 +368,8 @@ public class Draw : MonoBehaviour {
 	public static void Line(Vector3 center, Quaternion rot, float length)
 	{
 		Matrix4x4 mat = new Matrix4x4();
-		mat.SetTRS(center, rot, new Vector3(stroke, length * 0.5f, stroke));
+		Vector3 scale = new Vector3(stroke, length * toPixels.y * 0.5f, stroke);
+		mat.SetTRS(anchor + Vector3.Scale(center, toPixels), rot, scale);
 		DrawMesh(cylinderMesh, mat, currentMaterial, materialPropertyBlock);
 	}
 
@@ -387,11 +386,11 @@ public class Draw : MonoBehaviour {
 	public static void RoundedLine(Vector3 center, Quaternion rot, float length)
 	{
 		Matrix4x4 mat = new Matrix4x4();
-		length *= toPixels.y;
-		Vector3 scale = new Vector3(stroke, length * 0.5f, stroke);
+		Vector3 scale = new Vector3(stroke, length * toPixels.y * 0.5f, stroke);
 		mat.SetTRS(anchor + Vector3.Scale(center, toPixels), rot, scale);
 		DrawMesh(capsuleMesh, mat, currentMaterial, materialPropertyBlock);
 	}
+
 
 	public static void WireTriangle(Vector3 p0, Vector3 p1, Vector3 p2)
 	{
@@ -611,10 +610,7 @@ public class Draw : MonoBehaviour {
 
 
 
-	public static void Rect2D(float x, float y, float w, float h)
-	{
-		Rect(new Vector3(x, y, 0), w, h, Vector3.back);
-	}
+	
 
 	public static void Rect(Vector3 pos, float w, float h)
 	{
@@ -625,8 +621,8 @@ public class Draw : MonoBehaviour {
 	{
 		pos = anchor + Vector3.Scale(pos, toPixels);
 		Matrix4x4 mat = new Matrix4x4();
-		Vector3 scale = new Vector3(w, h, 1);
-		mat.SetTRS(pos, Quaternion.FromToRotation(Vector3.back, up), Vector3.Scale(scale, toPixels));
+		Vector3 scale = new Vector3(w * toPixels.x, h * toPixels.y, 1);
+		mat.SetTRS(pos, Quaternion.FromToRotation(Vector3.back, up), scale);
 		DrawMesh(quadMesh, mat, currentMaterial, materialPropertyBlock);
 	}
 
@@ -725,6 +721,91 @@ public class Draw : MonoBehaviour {
 		DrawMesh(sphereMesh, mat, debugWireframeMaterial, wireframeMaterialPropertyBlock);
 	}
 
+
+
+
+	//============== 2D
+	public static void Line2D(float startx, float starty, float endx, float endy)
+	{
+		Line2D(new Vector3(startx, starty, 0), new Vector3(endx, endy, 0));
+	}
+
+	public static void Line2D(Vector3 start, Vector3 end)
+	{
+		Vector3 center = (start + end) * 0.5f;
+		Vector3 line = end - start;
+		// lines are represented by cylinders so rotation has to take account for their up-aligned orientation
+		float angle = Vector3.SignedAngle(line.normalized, Vector3.up, Vector3.back);
+		float length = line.magnitude;
+		Line2D(center, angle, length);
+	}
+
+	public static void Line2D(Vector3 center, float angle, float length)
+	{
+		Matrix4x4 mat = new Matrix4x4();
+		Vector3 scale = new Vector3(stroke, length * toPixels.y * 0.5f, stroke);
+		mat.SetTRS(anchor + Vector3.Scale(center, toPixels), Quaternion.AngleAxis(angle, Vector3.forward), scale);
+		DrawMesh(cylinderMesh, mat, currentMaterial, materialPropertyBlock);
+	}
+
+	public static void RoundedLine2D(float startx, float starty, float endx, float endy)
+	{
+		RoundedLine2D(new Vector3(startx, starty, 0), new Vector3(endx, endy, 0));
+	}
+
+	public static void RoundedLine2D(Vector3 start, Vector3 end)
+	{
+		Vector3 center = (start + end) * 0.5f;
+		Vector3 line = end - start;
+		// rounded lines are represented by capsules so rotation has to take account for their up-aligned orientation
+		float angle = Vector3.SignedAngle(line.normalized, Vector3.up, Vector3.back);
+		float length = line.magnitude;
+		RoundedLine2D(center, angle, length);
+	}
+
+	public static void RoundedLine2D(Vector3 center, float angle, float length)
+	{
+		Matrix4x4 mat = new Matrix4x4();
+		Vector3 scale = new Vector3(stroke, length * toPixels.y * 0.5f, stroke);
+		Quaternion rot = Quaternion.AngleAxis(angle, Vector3.forward);
+		mat.SetTRS(anchor + Vector3.Scale(center, toPixels), rot, scale);
+		DrawMesh(capsuleMesh, mat, currentMaterial, materialPropertyBlock);
+	}
+
+	public static void Rect2D(float x, float y, float w, float h)
+	{
+		Rect(new Vector3(x, y, 0), w, h, Vector3.back);
+	}
+
+	public static void Rect2D(float x, float y, float w, float h, float angle)
+	{
+		Vector3 pos = anchor + Vector3.Scale(new Vector3(x, y, 0), toPixels);
+		Matrix4x4 mat = new Matrix4x4();
+		Vector3 scale = new Vector3(w * toPixels.x, h * toPixels.y, 1);
+		Quaternion rot = Quaternion.AngleAxis(angle, Vector3.forward);
+		mat.SetTRS(pos, rot, scale);
+		DrawMesh(quadMesh, mat, currentMaterial, materialPropertyBlock);
+	}
+
+	public static void Circle2D(float x, float y, float radius)
+	{
+		Circle2D(new Vector3(x, y ,0), radius, Vector3.back);
+	}
+
+	public static void Circle2D(Vector3 pos, float radius, Vector3 up)
+	{
+		pos = anchor + Vector3.Scale(pos, toPixels);
+		Matrix4x4 mat = new Matrix4x4();
+		Vector3 scale = Vector3.Scale(Vector3.one * radius, toPixels);
+		Quaternion rot = Quaternion.FromToRotation(Vector3.back, up);
+		mat.SetTRS(pos, rot, scale);
+		DrawMesh(circleMesh, mat, currentMaterial, materialPropertyBlock);
+	}
+
+
+
+
+	// DRAW COMMANDS
 
 	static void DrawMesh(Mesh mesh, Matrix4x4 matrix, Material material, MaterialPropertyBlock propertyBlock, float duration = 0)
 	{

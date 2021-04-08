@@ -47,6 +47,11 @@ public class NoiseImage : MonoBehaviour
       Draw.ClearDrawBuffer();
     }
 
+    //Draw.Line2D(Vector3.zero, new Vector3(Screen.width, Screen.height));
+    //Draw.Rect2D(Screen.width*0.5f, Screen.height * 0.5f, 300, 100);
+    //Draw.Rect2D(Screen.width*0.5f, Screen.height * 0.5f, 300, 100, 30);
+    //Draw.Circle2D(Screen.width*0.5f, Screen.height * 0.5f, 50);
+
       // Stop drawing once we exceed the drawing length.
     if (frame > drawLength) {
       return;
@@ -74,14 +79,14 @@ public class NoiseImage : MonoBehaviour
       Draw.stroke = strokeThickness;
 
       float n = Mathf.PerlinNoise(x * noiseScale, y * noiseScale);
-      Quaternion rotation = Quaternion.AngleAxis(map(n, 0, 1, -180, 180), Vector3.forward);
+      float rotationAngle = map(n, 0, 1, -180, 180);
       float lengthVariation = Random.Range(0.75f, 1.25f);  // Randomize a multiplier to make length shorter or longer.
 
       // map the position inside the screen (screen may not be the same size as the image)
       Vector3 position = new Vector3(x, y,0);
       position.x = map(position.x, 0, image.width, margins.x, Screen.width - margins.x);
       position.y = map(position.y, 0, image.height, margins.y, Screen.height - margins.y);
-      Draw.RoundedLine(position, rotation, strokeLength * lengthVariation);
+      Draw.RoundedLine2D(position, rotationAngle, strokeLength * lengthVariation);
       //Draw.Circle(offset + position, strokeLength * lengthVariation * 0.2f, Vector3.back);
     }
 
