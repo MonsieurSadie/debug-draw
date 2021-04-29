@@ -113,21 +113,53 @@ public class Draw : MonoBehaviour {
 			anchor = Vector3.zero;
 		}
 	}
+
+	public static void EnableOverlayMode(bool enable = true)
+	{
+		overlayModeOn = enable;
+
+		if(overlayModeOn)
+		{
+			GameObject camgo = new GameObject("RenderTexCam");
+			renderTexCam = camgo.AddComponent<Camera>();
+			renderTexCam.CopyFrom(Camera.main);
+			renderTexCam.clearFlags = CameraClearFlags.SolidColor;
+			renderTexCam.backgroundColor = Color.white;
+			renderTexCam.cullingMask = LayerMask.GetMask("Default");
+
+			rt = new RenderTexture(Screen.width, Screen.height, 16, RenderTextureFormat.ARGB32);
+	        rt.Create();			
+			renderTexCam.targetTexture = rt;
+
+			DontClearPostProcess pp = renderTexCam.gameObject.AddComponent<DontClearPostProcess>();
+			pp.target = rt;
+
+			renderCam = renderTexCam;
+
+			// Create a full screen quad that will overlap the rest of the screen
+			GameObject overlay = GameObject.CreatePrimitive(PrimitiveType.Quad);
+			overlay.layer = LayerMask.NameToLayer("UI");
+			overlay.GetComponent<Renderer>().material = new Material(Shader.Find("Unlit/Texture"));
+			overlay.GetComponent<Renderer>().material.mainTexture = rt;
+			float fullscreenHeight = Camera.main.orthographicSize * 2;
+			float fullscreenWidth = fullscreenHeight * Camera.main.aspect;
+			overlay.transform.localScale = new Vector3(fullscreenWidth, fullscreenHeight, 1);
+
+			ClearDrawBuffer();
+		}
+	}
 	
 
+	static bool overlayModeOn = false;
 	static RenderTexture rt;
 	static Camera renderTexCam;
+	static Camera renderCam;
 
 
 	[RuntimeInitializeOnLoadMethod]
 	static void Initialize()
 	{
-		GameObject camgo = new GameObject("RenderTexCam");
-		renderTexCam = camgo.AddComponent<Camera>();
-		renderTexCam.CopyFrom(Camera.main);
-		rt = new RenderTexture(Screen.width, Screen.height, 16, RenderTextureFormat.ARGB32);
-        rt.Create();
-		renderTexCam.targetTexture = rt;
+		renderCam = Camera.main;
 
 		GameObject go = new GameObject("DrawDebug");
 		go.AddComponent<Draw>();
@@ -281,6 +313,12 @@ public class Draw : MonoBehaviour {
 	public static void ClearDrawBuffer()
 	{
 		meshesToDraw.Clear();
+		if(overlayModeOn)
+		{
+			//renderCam.clearFlags = CameraClearFlags.SolidColor;
+			renderCam.Render();
+			//renderCam.clearFlags = CameraClearFlags.Nothing;
+		}
 	}
 
 	// Undo N commands (don't have to be temp commands)
@@ -834,7 +872,7 @@ public class Draw : MonoBehaviour {
 
 	static void DrawMesh(DrawData data)
 	{
-		Graphics.DrawMesh(data.meshModel, data.matrix, data.drawMaterial, defaultLayer, mainCamera, 0, data.propertyBlock);
+		Graphics.DrawMesh(data.meshModel, data.matrix, data.drawMaterial, defaultLayer, renderCam, 0, data.propertyBlock);
 		
 		#if UNITY_EDITOR
 		if(drawInSceneView)

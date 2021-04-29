@@ -24,9 +24,9 @@ public class NoiseImage : MonoBehaviour
   void Start() 
   {
     // INIT drawing system
-    Draw.infiniteMode = true;
     Draw.EnableTransparentMode(true);
     Draw.SetValuesAsPixels(true);
+    Draw.EnableOverlayMode(true);
     changeImage();
 
 
